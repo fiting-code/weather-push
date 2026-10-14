@@ -1,0 +1,41 @@
+{
+  "name": "weather-push",
+  "version": "1.0.0",
+  "description": "每天 07:00 (Asia/Shanghai) 拉取当日天气预报并推送到微信；零第三方依赖",
+  "license": "MIT",
+  "author": "weather-push contributors",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "keywords": [
+    "weather",
+    "wechat",
+    "push",
+    "cron",
+    "qweather",
+    "open-meteo",
+    "pushplus",
+    "wecom",
+    "serverchan",
+    "zero-dependency"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/<YOUR_USERNAME>/weather-push.git"
+  },
+  "bugs": {
+    "url": "https://github.com/<YOUR_USERNAME>/weather-push/issues"
+  },
+  "homepage": "https://github.com/<YOUR_USERNAME>/weather-push#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node src/index.js --check",
+    "dry-run": "node src/index.js --dry-run",
+    "preview": "node src/index.js --dry-run --provider open-meteo",
+    "test": "node scripts/selftest.cjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,28 @@
+# ---------- 环境变量与密钥(绝对不能提交) ----------
+.env
+.env.local
+.env.*.local
+
+# ---------- 私钥 ----------
+*.pem
+*.key
+*.p12
+secrets/
+
+# ---------- 日志 ----------
+# 忽略 logs/ 下所有内容, 但保留目录本身(.gitkeep)
+logs/*
+!logs/.gitkeep
+*.log
+
+# ---------- Node ----------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.npm
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
