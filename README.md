@@ -1,14 +1,17 @@
 # 每日天气推送到微信（07:00 Asia/Shanghai）
 
 ![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A518-brightgreen)
-![依赖数量](https://img.shields.io/badge/dependencies-0-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Cron](https://img.shields.io/badge/cron-0%2007%20*%20*%20*%20(Asia%2FShanghai)-orange)
 
-一个零第三方依赖、可直接上生产的 Node.js 定时任务：每天北京时间 07:00 拉取当日天气预报，
+![依赖数量](https://img.shields.io/badge/dependencies-0-brightgreen)
+
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+![Cron](https://img.shields.io/badge/cron-0%2007%20*%20*%20*%20\(Asia%2FShanghai\)-orange)
+
+一个零第三方依赖、可直接上生产的 Node.js 定时任务：每天北京时间 07:00 拉取当日天气预报，  
 整理成一条在手机端换行正常、可读性好的简报，推送到微信。
 
-**技术特点**：Node 18+ 原生 `fetch` / `crypto` / `Intl`，**无任何 npm 依赖**（`npm install` 秒完成，
+**技术特点**：Node 18+ 原生 `fetch` / `crypto` / `Intl`，**无任何 npm 依赖**（`npm install` 秒完成，  
 供应链风险为 0）；天气数据源与推送渠道均为可插拔设计，换供应商只需改环境变量与一处常量。
 
 > 仓库中不含任何密钥或个人信息，所有敏感项均为 `YOUR_XXX_HERE` 占位符，可安全公开。
@@ -34,92 +37,11 @@
 —— 由每日天气推送服务自动发送
 ```
 
-> 换行靠 `\n` + 渠道的 `txt` 模板生效（详见 [第八节](#八推送渠道对比与选择) 的换行要点）。
+> 换行靠 `\n` + 渠道的 `txt` 模板生效（详见 [第七节](#七推送渠道对比与选择) 的换行要点）。
 
 ---
 
-## 二、上传到 GitHub
-
-本项目已是标准 GitHub 仓库结构（含 `LICENSE`、`.github/workflows/`、`SECURITY.md`、`.gitignore`），可直接上传。
-上传前请确认：**`.env` 从未被创建，或已被 `.gitignore` 排除**——密钥一旦进历史，被 fork 后就删不干净
-（处置办法见 [SECURITY.md](SECURITY.md)）。
-
-### 2.1 上传前自检（1 分钟，别跳过）
-
-```bash
-cd weather-push
-git init                       # 若已是 git 仓库可跳过
-git add -A
-git status --short             # ★ 逐行确认: 不应出现 .env / *.pem / *.log
-
-# 密钥扫描: 输出为空才算安全
-git grep -nE '(API_KEY|TOKEN|SECRET|SEND_KEY)[[:space:]]*[:=][[:space:]]*["'"'"']?[A-Za-z0-9_-]{16,}' \
-  -- . ':!.env.example' || echo "✓ 未发现疑似密钥"
-```
-
-只有 `.env.example` 里允许出现密钥的**名字**，不允许出现密钥的**值**。
-
-### 2.2 首次提交
-
-本目录**已完成 `git init` 与首次提交**（28 个文件，行尾统一为 LF），所以这一步通常可以跳过，
-直接跳到 2.3 添加远端。
-
-若你在别处重新建仓，或想换成自己的身份提交：
-
-```bash
-git add -A
-git commit -m "feat: 每日 07:00 天气推送到微信（零依赖，支持 PushPlus/企业微信/Server酱）"
-git branch -M main
-
-# 可选: 把占位提交者(weather-push <noreply@github.com>)改成你的 GitHub 身份
-git config user.name  "<你的 GitHub 用户名>"
-git config user.email "<你的 GitHub 邮箱>"
-git commit --amend --reset-author --no-edit
-```
-
-### 2.3 方式 A：命令行推送（推荐）
-
-1. 在 GitHub 网页新建**空**仓库（**不要**勾选 Add README / .gitignore / license，本地已有）；
-2. 复制仓库地址后执行：
-
-```bash
-git remote add origin https://github.com/<YOUR_USERNAME>/weather-push.git
-git push -u origin main
-```
-
-> 开启双重认证时，密码处需填 **Personal Access Token**（Settings → Developer settings →
-> Personal access tokens → 勾选 `repo` 权限）；或改用 SSH 地址
-> `git@github.com:<YOUR_USERNAME>/weather-push.git`。
-
-### 2.4 方式 B：网页拖拽上传
-
-在新建的空仓库页面点 **uploading an existing file**，把 `weather-push/` 内的
-**所有文件（含隐藏文件 `.env.example`、`.gitignore`、`.github/`）** 拖进去即可。
-适合没配 Git 的环境，但后续更新不如命令行方便。
-
-### 2.5 方式 C：GitHub CLI
-
-```bash
-gh auth login
-gh repo create weather-push --public --source=. --remote=origin --push
-# 私有仓库把 --public 换成 --private
-```
-
-### 2.6 上传后必做
-
-| 步骤 | 位置 | 说明 |
-|---|---|---|
-| ① 换掉占位用户名 | `package.json` 的 `repository` / `bugs` / `homepage` | 把 `<YOUR_USERNAME>` 替换成你的 GitHub 用户名 |
-| ② 配置密钥 | Settings → Secrets and variables → Actions → New repository secret | 至少添加 `WEATHER_API_KEY`、`PUSHPLUS_TOKEN`（换渠道则对应改名） |
-| ③ 激活定时任务 | Actions → `每日天气推送` → Enable workflow | **公共仓库 60 天无活动会自动停用 schedule** |
-| ④ 先验证一次 | Actions → `每日天气推送` → **Run workflow** → 勾选 `dry_run` | 先看预览排版，满意后再正式跑 |
-| ⑤ 让 CI 跑测试 | 本仓库已带 `npm test`（11 项断言） | 需要 CI 校验可再加一条触发 `npm test` 的工作流 |
-
-> 建议设为私有仓库：工作流日志虽已脱敏，但会显示城市名与运行摘要，私有仓库能进一步避免暴露你的作息与位置习惯。
-
----
-
-## 三、目录结构
+## 二、目录结构
 
 ```
 weather-push/
@@ -162,21 +84,21 @@ weather-push/
 
 ---
 
-## 四、依赖清单
+## 三、依赖清单
 
-| 类别 | 名称 | 版本 | 说明 |
-|---|---|---|---|
-| 运行时 | Node.js | **≥ 18.0**（推荐 20 LTS） | 依赖内置 `fetch`、`AbortController`、`crypto`、`Intl` |
-| npm 依赖 | — | **零依赖** | `dependencies` 为空；`npm install` 仅做校验 |
-| 外部服务 | 天气数据源 | 和风天气 / Open-Meteo | 见第五节 |
-| 外部服务 | 推送渠道 | PushPlus / 企业微信 / Server酱 | 见第七节 |
+| 类别     | 名称      | 版本                        | 说明                                             |
+| ------ | ------- | ------------------------- | ---------------------------------------------- |
+| 运行时    | Node.js | **≥ 18.0**（推荐 20 LTS）     | 依赖内置 `fetch`、`AbortController`、`crypto`、`Intl` |
+| npm 依赖 | —       | **零依赖**                   | `dependencies` 为空；`npm install` 仅做校验           |
+| 外部服务   | 天气数据源   | 和风天气 / Open-Meteo         | 见第五节                                           |
+| 外部服务   | 推送渠道    | PushPlus / 企业微信 / Server酱 | 见第七节                                           |
 
-> 为什么坚持零依赖：定时任务最怕"某天 npm 装不上了 / 某个包被投毒"。
+> 为什么坚持零依赖：定时任务最怕"某天 npm 装不上了 / 某个包被投毒"。  
 > 本项目用标准库覆盖了 JSON 请求、JWT 签名（Ed25519）、时区日期计算、日志、重试，全部功能自足。
 
 ---
 
-## 五、快速开始（本地 5 分钟跑通）
+## 四、快速开始（本地 5 分钟跑通）
 
 无需申请任何密钥，用免密钥数据源先跑通全链路：
 
@@ -202,73 +124,72 @@ npm test
 
 **命令行参数**
 
-| 参数 | 作用 |
-|---|---|
-| `--dry-run` | 只渲染并打印，不发送（本地调试首选） |
-| `--check` | 只做配置自检，不联网 |
-| `--provider=open-meteo` | 临时覆盖数据源 |
-| `--channel=pushplus` | 临时覆盖推送渠道 |
+| 参数                      | 作用                 |
+| ----------------------- | ------------------ |
+| `--dry-run`             | 只渲染并打印，不发送（本地调试首选） |
+| `--check`               | 只做配置自检，不联网         |
+| `--provider=open-meteo` | 临时覆盖数据源            |
+| `--channel=pushplus`    | 临时覆盖推送渠道           |
 
 **退出码**：`0` 成功 / `1` 失败 —— cron、systemd、云函数、CI 均可据此判定任务成败并告警。
 
 ---
 
-## 六、环境变量说明
+## 五、环境变量说明
 
-复制 `.env.example` 为 `.env` 后填写。**进程级环境变量优先级高于 `.env` 文件**，
+复制 `.env.example` 为 `.env` 后填写。**进程级环境变量优先级高于 `.env` 文件**，  
 因此生产环境用 CI Secrets / Docker `--env-file` 注入更安全（密钥不落盘）。
 
 ### 5.1 运行时
 
-| 变量 | 默认值 | 说明 |
-|---|---|---|
-| `TZ` | `Asia/Shanghai` | 时区，决定"今天"的判定与所有日期展示 |
-| `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
+| 变量          | 默认值             | 说明                                  |
+| ----------- | --------------- | ----------------------------------- |
+| `TZ`        | `Asia/Shanghai` | 时区，决定"今天"的判定与所有日期展示                 |
+| `LOG_LEVEL` | `info`          | `debug` / `info` / `warn` / `error` |
 
 ### 5.2 天气数据源
 
-| 变量 | 默认值 | 说明 |
-|---|---|---|
-| `WEATHER_PROVIDER` | `qweather` | `qweather`（字段最全）或 `open-meteo`（免密钥） |
-| `WEATHER_API_BASE` | `https://devapi.qweather.com/v7` | 和风接口地址，换地域/自建网关时改这里 |
-| `WEATHER_API_KEY` | 空 | 和风控制台创建的凭据 KEY |
-| `WEATHER_JWT_KEY_ID` | 空 | 和风 JWT 凭据的 `kid`（选填） |
-| `WEATHER_JWT_SUB` | 空 | 和风 JWT 凭据的 `sub`（选填） |
-| `WEATHER_JWT_KEY_PATH` | 空 | Ed25519 私钥**文件路径**（不要把私钥内容写进 `.env`） |
-| `OPEN_METEO_BASE` | `https://api.open-meteo.com/v1` | Open-Meteo 预报接口 |
-| `OPEN_METEO_AIR_BASE` | `https://air-quality-api.open-meteo.com/v1` | Open-Meteo 空气质量接口 |
+| 变量                     | 默认值                                         | 说明                                   |
+| ---------------------- | ------------------------------------------- | ------------------------------------ |
+| `WEATHER_PROVIDER`     | `qweather`                                  | `qweather`（字段最全）或 `open-meteo`（免密钥）  |
+| `WEATHER_API_BASE`     | `https://devapi.qweather.com/v7`            | 和风接口地址，换地域/自建网关时改这里                  |
+| `WEATHER_API_KEY`      | 空                                           | 和风控制台创建的凭据 KEY                       |
+| `WEATHER_JWT_KEY_ID`   | 空                                           | 和风 JWT 凭据的 `kid`（选填）                 |
+| `WEATHER_JWT_SUB`      | 空                                           | 和风 JWT 凭据的 `sub`（选填）                 |
+| `WEATHER_JWT_KEY_PATH` | 空                                           | Ed25519 私钥**文件路径**（不要把私钥内容写进 `.env`） |
+| `OPEN_METEO_BASE`      | `https://api.open-meteo.com/v1`             | Open-Meteo 预报接口                      |
+| `OPEN_METEO_AIR_BASE`  | `https://air-quality-api.open-meteo.com/v1` | Open-Meteo 空气质量接口                    |
 
-> **鉴权自动降级**：三个 JWT 变量全填 → 走 `Authorization: Bearer <EdDSA JWT>`（代码内自动签名并缓存）；
+> **鉴权自动降级**：三个 JWT 变量全填 → 走 `Authorization: Bearer <EdDSA JWT>`（代码内自动签名并缓存）；  
 > 否则走 `?key=xxx`。切换只需改环境变量，业务代码零改动。
 
 ### 5.3 推送渠道
 
-| 变量 | 默认值 | 说明 |
-|---|---|---|
-| `PUSH_CHANNEL` | `pushplus` | `pushplus` / `wecom` / `serverchan` |
-| `PUSHPLUS_TOKEN` | 空 | PushPlus token |
-| `PUSHPLUS_TEMPLATE` | `txt` | **保持 `txt` 才能用 `\n` 正常换行**；另有 `html`/`json`/`markdown` |
-| `PUSHPLUS_TOPIC` | 空 | 群组编码，留空 = 一对一推送 |
-| `WECOM_CORP_ID` / `WECOM_CORP_SECRET` / `WECOM_AGENT_ID` | 空 | 企业微信自建应用三件套 |
-| `WECOM_TO_USER` | `@all` | 接收成员，`userid1\|userid2` 或 `@all` |
-| `SERVERCHAN_SEND_KEY` | 空 | Server酱 Turbo 的 SendKey（`SCT` 开头） |
+| 变量                                                       | 默认值        | 说明                                                     |
+| -------------------------------------------------------- | ---------- | ------------------------------------------------------ |
+| `PUSH_CHANNEL`                                           | `pushplus` | `pushplus` / `wecom` / `serverchan`                    |
+| `PUSHPLUS_TOKEN`                                         | 空          | PushPlus token                                         |
+| `PUSHPLUS_TEMPLATE`                                      | `txt`      | **保持 `txt` 才能用 `\n` 正常换行**；另有 `html`/`json`/`markdown` |
+| `PUSHPLUS_TOPIC`                                         | 空          | 群组编码，留空 = 一对一推送                                        |
+| `WECOM_CORP_ID` / `WECOM_CORP_SECRET` / `WECOM_AGENT_ID` | 空          | 企业微信自建应用三件套                                            |
+| `WECOM_TO_USER`                                          | `@all`     | 接收成员，`userid1\|userid2` 或 `@all`                       |
+| `SERVERCHAN_SEND_KEY`                                    | 空          | Server酱 Turbo 的 SendKey（`SCT` 开头）                      |
 
 ### 5.4 重试与长度
 
-| 变量 | 默认值 | 说明 |
-|---|---|---|
-| `MAX_RETRIES` | `3` | 最大重试次数（不含首次，即最多 4 次尝试） |
-| `RETRY_BASE_DELAY_MS` | `1000` | 退避基数，实际间隔 1s → 2s → 4s（含 0~30% 抖动） |
-| `REQUEST_TIMEOUT_MS` | `10000` | 单次 HTTP 超时，防定时任务卡死 |
-| `MAX_MESSAGE_CHARS` | `800` | 自定义长度上限，与渠道硬限制取**小值** |
+| 变量                    | 默认值     | 说明                                 |
+| --------------------- | ------- | ---------------------------------- |
+| `MAX_RETRIES`         | `3`     | 最大重试次数（不含首次，即最多 4 次尝试）             |
+| `RETRY_BASE_DELAY_MS` | `1000`  | 退避基数，实际间隔 1s → 2s → 4s（含 0~30% 抖动） |
+| `REQUEST_TIMEOUT_MS`  | `10000` | 单次 HTTP 超时，防定时任务卡死                 |
+| `MAX_MESSAGE_CHARS`   | `800`   | 自定义长度上限，与渠道硬限制取**小值**              |
 
 ---
 
-## 七、定时触发：每天 07:00（Asia/Shanghai）
+## 六、定时触发：每天 07:00（Asia/Shanghai）
 
-代码本身**不内置调度器**——定时任务交给平台调度是更可靠的做法（避免常驻进程内存泄漏、
-避免进程被杀后彻底不跑）。下面给出五种可落地方案，按推荐度排序；
-其中**方案 D（GitHub Actions）已随仓库提供，上传即生效**。
+代码本身**不内置调度器**——定时任务交给平台调度是更可靠的做法（避免常驻进程内存泄漏、  
+避免进程被杀后彻底不跑）。下面给出五种可落地方案，按推荐度排序。
 
 ### 方案 A：systemd timer（Linux 服务器，推荐 ✅）
 
@@ -308,7 +229,7 @@ crontab deploy/crontab.example
 # 0 7 * * * cd /opt/weather-push && /usr/bin/node src/index.js >> logs/cron.out 2>&1
 ```
 
-⚠️ 注意：cron 环境不带 `PATH`，必须写 node 绝对路径；部分发行版需在 crontab 顶部声明 `TZ=Asia/Shanghai`
+⚠️ 注意：cron 环境不带 `PATH`，必须写 node 绝对路径；部分发行版需在 crontab 顶部声明 `TZ=Asia/Shanghai`  
 并 `systemctl restart cron` 才生效。
 
 ### 方案 C：Docker（容器内 crond）
@@ -326,24 +247,24 @@ docker logs -f weather-push
 
 镜像**刻意不 COPY `.env`**，密钥通过 `--env-file` 或 `-e` 注入，不会留在镜像层里。
 
-### 方案 D：GitHub Actions（零服务器，已随仓库提供 ✅）
+### 方案 D：GitHub Actions（零服务器）
 
-工作流文件已就位在 `.github/workflows/weather-push.yml`，**上传 GitHub 后即可工作**，
-只需把密钥配到 `Settings → Secrets and variables → Actions`：
+工作流位于 `.github/workflows/weather-push.yml`，密钥配置到  
+`Settings → Secrets and variables → Actions`：
 
-| Secret 名称 | 用途 |
-|---|---|
-| `WEATHER_API_KEY` | 和风天气凭据（用 `open-meteo` 数据源时可不配） |
-| `PUSHPLUS_TOKEN` | PushPlus token（换渠道时改为对应的 `WECOM_*` / `SERVERCHAN_SEND_KEY`） |
+| Secret 名称         | 用途                                                          |
+| ----------------- | ----------------------------------------------------------- |
+| `WEATHER_API_KEY` | 和风天气凭据（用 `open-meteo` 数据源时可不配）                              |
+| `PUSHPLUS_TOKEN`  | PushPlus token（换渠道时改为对应的 `WECOM_*` / `SERVERCHAN_SEND_KEY`） |
 
 ```yaml
 - cron: '0 23 * * *'   # ★ GitHub 固定用 UTC: 23:00 UTC = 次日 07:00 北京时间
 ```
 
-工作流特点：手动触发时可勾选 `dry_run` 只预览不推送；执行前先跑 `npm run check` 做配置自检，
+工作流特点：手动触发时可勾选 `dry_run` 只预览不推送；执行前先跑 `npm run check` 做配置自检，  
 密钥缺失会在这一步就明确报错；已配置 `permissions: contents: read` 最小权限。
 
-⚠️ 局限：高峰期可能延迟 5~20 分钟；公共仓库 60 天无活动会自动停用定时触发器。
+⚠️ 局限：高峰期可能延迟 5~20 分钟；公共仓库 60 天无活动会自动停用定时触发器。  
 追求准点请选方案 A。
 
 ### 方案 E：云函数（腾讯云 SCF / 阿里云 FC）
@@ -354,40 +275,42 @@ docker logs -f weather-push
 0 0 7 * * * *     # 每天 07:00:00
 ```
 
-入口填 `src/index.js` 的 `main`，环境变量在控制台配置。
+入口填 `src/index.js` 的 `main`，环境变量在控制台配置。  
 适合"完全不想管服务器"，注意配置超时时间 > 接口超时 × 重试次数（建议 60s）。
 
 ---
 
-## 八、推送渠道对比与选择
+## 七、推送渠道对比与选择
 
-| 渠道 | 每日条数 | 是否需认证 | 是否需绑定设备 | 到达位置 | 其他限制 |
-|---|---|---|---|---|---|
-| **PushPlus**（默认） | 免费版约 **200 条/天** | **否** — 微信扫码登录即可获取 token，无需公众号/企业认证 | **否** | 微信公众号（服务号） | 一对一免费；一对多「群组」推送需开通会员；`content` 上限约 2000 字符 |
-| **企业微信应用消息** | 无明确每日条数上限，但有**接口级频率限制**（勿对同一成员高频发送） | **否** — 免费注册企业微信即可发应用消息（未认证企业部分高级接口受限） | **否** | 企业微信 App | 需新建自建应用；需把出口 IP 配到「企业可信IP」；接收人须在应用可见范围内；文本消息 ≤ **2048 字节**（约 682 汉字） |
-| **Server酱 Turbo** | 免费版约 **5 条/天** | **否** | **否** | 微信公众号（服务号） | 标题 ≤ 32 字符（代码已自动裁剪）；超出条数需开通会员 |
+| 渠道                | 每日条数                                | 是否需认证                                  | 是否需绑定设备 | 到达位置       | 其他限制                                                                 |
+| ----------------- | ----------------------------------- | -------------------------------------- | ------- | ---------- | -------------------------------------------------------------------- |
+| **PushPlus**（默认）  | 免费版约 **200 条/天**                    | **否** — 微信扫码登录即可获取 token，无需公众号/企业认证    | **否**   | 微信公众号（服务号） | 一对一免费；一对多「群组」推送需开通会员；`content` 上限约 2000 字符                           |
+| **企业微信应用消息**      | 无明确每日条数上限，但有**接口级频率限制**（勿对同一成员高频发送） | **否** — 免费注册企业微信即可发应用消息（未认证企业部分高级接口受限） | **否**   | 企业微信 App   | 需新建自建应用；需把出口 IP 配到「企业可信IP」；接收人须在应用可见范围内；文本消息 ≤ **2048 字节**（约 682 汉字） |
+| **Server酱 Turbo** | 免费版约 **5 条/天**                      | **否**                                  | **否**   | 微信公众号（服务号） | 标题 ≤ 32 字符（代码已自动裁剪）；超出条数需开通会员                                        |
 
 > 表中配额与限制以各平台官方文档为准，可能随运营策略调整；代码内已按上述数值预留安全余量。
 
 **怎么选**
+
 - 个人自用、想立刻用起来 → **PushPlus**（200 条/天对 1 天 1 条绰绰有余）
 - 团队/公司内部通知，且已在用企业微信 → **企业微信应用消息**（免费、稳定、可 `@all`）
 - 已有 Server酱 账号且只需 1 条/天 → **Server酱**
 
 **手机端换行要点**（最容易踩的坑）
-- PushPlus：`.env` 里 `PUSHPLUS_TEMPLATE=txt`，`content` 中的 `\n` 会正常换行；
+
+- PushPlus：`.env` 里 `PUSHPLUS_TEMPLATE=txt`，`content` 中的 `\n` 会正常换行；  
   若改成 `html` 模板，则必须把 `\n` 换成 `<br/>`，否则微信里会挤成一坨。
 - 企业微信：文本消息原生支持 `\n`，天然换行，但要盯住 2048 字节上限。
 - Server酱：`desp` 支持 Markdown，`\n` 换行即可，标题超 32 字符会被截断。
 
 ---
 
-## 九、健壮性设计
+## 八、健壮性设计
 
 **1）指数退避重试（`src/retry.js`）**
 
 - 最多 **3 次重试**（即最多 4 次尝试），间隔 `1s → 2s → 4s`（`base × 2^n`），叠加 0~30% 随机抖动防惊群；
-- 只对**值得重试**的错误重试：网络错误、超时（`AbortController` 中断）、`5xx`、`429` 限流；
+- 只对**值得重试**的错误重试：网络错误、超时（`AbortController` 中断）、`5xx`、`429` 限流；  
   `401/403`（密钥错）、`400`（参数错）等**立即失败**，不浪费配额；
 - 尊重服务端 `Retry-After` 头；
 - 天气、推送两条链路**各自独立重试**；多城市场景下**单城失败不影响其他城市**。
@@ -408,32 +331,33 @@ docker logs -f weather-push
 
 **4）降级不崩**
 
-- 空气质量、穿衣指数、逐小时降水概率属于"增强信息"，任一接口失败只降级为占位符/本地规则，
+- 空气质量、穿衣指数、逐小时降水概率属于"增强信息"，任一接口失败只降级为占位符/本地规则，  
   不影响主流程推送；
 - 所有数值字段缺失统一渲染为 `暂无`，绝不出现 `undefined` / `NaN`（自检脚本有断言覆盖）。
 
 ---
 
-## 十、常见排错
+## 九、常见排错
 
-| 现象 | 原因与处理 |
-|---|---|
-| `配置自检未通过: 未配置 WEATHER_API_KEY` | 填 KEY，或临时设 `WEATHER_PROVIDER=open-meteo` 先用免密钥数据源 |
-| `HTTP 401 / 和风 code=401` | KEY 无效或 JWT 凭据三件套不匹配；JWT 模式检查私钥路径与 `kid`/`sub` |
-| `和风 code=402` | 当日调用配额耗尽（免费版 1000 次/天）；已用尽配额不再重试，避免雪上加霜 |
-| 微信里收到消息但**没有换行** | `PUSHPLUS_TEMPLATE` 被设成了 `html`；改回 `txt` |
-| 企业微信 `errcode=60020` | 出口 IP 未加入应用「企业可信IP」白名单 |
-| 企业微信 `errcode=81013` | `touser` 不在应用可见范围内，或 `agentid` 填错 |
-| 定时任务没在 07:00 触发 | 用 `systemctl list-timers` 核对下次触发时间；crontab 场景核对 `TZ` 是否生效 |
-| 时区差 8 小时 | 确认 `.env` 的 `TZ=Asia/Shanghai` 已加载（systemd 用 `EnvironmentFile` 注入） |
+| 现象                             | 原因与处理                                                              |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `配置自检未通过: 未配置 WEATHER_API_KEY` | 填 KEY，或临时设 `WEATHER_PROVIDER=open-meteo` 先用免密钥数据源                  |
+| `HTTP 401 / 和风 code=401`       | KEY 无效或 JWT 凭据三件套不匹配；JWT 模式检查私钥路径与 `kid`/`sub`                     |
+| `和风 code=402`                  | 当日调用配额耗尽（免费版 1000 次/天）；已用尽配额不再重试，避免雪上加霜                            |
+| 微信里收到消息但**没有换行**               | `PUSHPLUS_TEMPLATE` 被设成了 `html`；改回 `txt`                           |
+| 企业微信 `errcode=60020`           | 出口 IP 未加入应用「企业可信IP」白名单                                             |
+| 企业微信 `errcode=81013`           | `touser` 不在应用可见范围内，或 `agentid` 填错                                  |
+| 定时任务没在 07:00 触发                | 用 `systemctl list-timers` 核对下次触发时间；crontab 场景核对 `TZ` 是否生效          |
+| 时区差 8 小时                       | 确认 `.env` 的 `TZ=Asia/Shanghai` 已加载（systemd 用 `EnvironmentFile` 注入） |
+
+
 
 ---
 
-## 十一、安全与隐私
+## 十、安全与隐私
 
 - 仓库与示例代码中**不含任何真实密钥、token、企业 ID 或个人手机号**，全部为 `YOUR_XXX_HERE` 占位符；
-  上传前可用 [2.1 节](#21-上传前自检1-分钟别跳过) 的命令做一次密钥扫描；
-  若发生泄露，按 [SECURITY.md](SECURITY.md) 的流程处置；
+  若发生密钥泄露，按 [SECURITY.md](SECURITY.md) 的流程处置；
 - `.env`、`*.pem`、`logs/` 均已加入 `.gitignore`；
 - 密钥**只走环境变量**（CI Secrets / Docker `--env-file` / systemd `EnvironmentFile`），不写入源码或镜像层；
 - 日志输出前自动脱敏，URL 查询参数中的凭据不会落盘；
